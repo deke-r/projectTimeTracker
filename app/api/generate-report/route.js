@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import nodemailer from "nodemailer"
-import puppeteer from "puppeteer"
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -13,207 +12,17 @@ const transporter = nodemailer.createTransport({
 
 const HR_EMAIL = process.env.HR_EMAIL || "hr@company.com"
 
-// Generate HTML content for the report
-function generateHTMLReport(data) {
-  const { userName, date, projects, stats } = data
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Daily Time Report - ${userName}</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 20px;
-                line-height: 1.6;
-                color: #333;
-            }
-            .header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 30px;
-                border-radius: 10px;
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            .stats {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-                margin-bottom: 30px;
-            }
-            .stat-card {
-                background: #f8f9fa;
-                padding: 20px;
-                border-radius: 8px;
-                border-left: 4px solid #667eea;
-                text-align: center;
-            }
-            .stat-number {
-                font-size: 2em;
-                font-weight: bold;
-                color: #667eea;
-            }
-            .timeline {
-                background: white;
-                border-radius: 10px;
-                padding: 20px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-            .project {
-                border-left: 3px solid #667eea;
-                padding: 15px 20px;
-                margin-bottom: 20px;
-                background: #f8f9fa;
-                border-radius: 0 8px 8px 0;
-            }
-            .project-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 10px;
-            }
-            .project-title {
-                font-size: 1.2em;
-                font-weight: bold;
-                color: #333;
-            }
-            .time-badge {
-                background: #667eea;
-                color: white;
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 0.9em;
-            }
-            .duration-badge {
-                background: #28a745;
-                color: white;
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 0.9em;
-                margin-left: 10px;
-            }
-            .project-description {
-                color: #666;
-                margin-top: 10px;
-            }
-            .footer {
-                text-align: center;
-                margin-top: 40px;
-                padding: 20px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                color: #666;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <h1>Daily Time Report</h1>
-            <h2>${userName}</h2>
-            <p>Date: ${date}</p>
-        </div>
-
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">${stats.totalProjects}</div>
-                <div>Total Tasks</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">${stats.totalTime}</div>
-                <div>Total Time</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">${stats.averageTime}</div>
-                <div>Average Time</div>
-            </div>
-        </div>
-
-        <div class="timeline">
-            <h3>Task Timeline</h3>
-            ${projects
-              .map((project) => {
-                const startTime = new Date(`2000-01-01T${project.startTime}`).toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                })
-                const endTime = new Date(`2000-01-01T${project.endTime}`).toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                })
-                const duration = `${Math.floor(project.duration / 60)}h ${project.duration % 60}m`
-
-                return `
-                <div class="project">
-                    <div class="project-header">
-                        <div class="project-title">${project.name}</div>
-                        <div>
-                            <span class="time-badge">${startTime} - ${endTime}</span>
-                            <span class="duration-badge">${duration}</span>
-                        </div>
-                    </div>
-                    ${project.description ? `<div class="project-description">${project.description}</div>` : ""}
-                </div>
-              `
-              })
-              .join("")}
-        </div>
-
-        <div class="footer">
-            <p>Generated automatically by Sense Time Tracker</p>
-            <p>Report generated on ${new Date().toLocaleString()}</p>
-        </div>
-    </body>
-    </html>
-  `
-}
-
 export async function POST(request) {
   try {
     const data = await request.json()
     const { userName, date, projects, stats, additionalEmail } = data
-
-    const htmlContent = generateHTMLReport(data)
-
-    // Generate PDF using Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    })
-    const page = await browser.newPage()
-    await page.setContent(htmlContent, { waitUntil: "networkidle0" })
-
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: {
-        top: "20px",
-        right: "20px",
-        bottom: "20px",
-        left: "20px",
-      },
-    })
-
-    await browser.close()
-
-    const attachment = {
-      filename: `${userName}_Daily_Report_${date.replace(/\//g, "-")}.pdf`,
-      content: pdfBuffer,
-      contentType: "application/pdf",
-    }
 
     // Email content
     const emailSubject = `Daily Time Report - ${userName} (${date})`
     const emailText = `
 Dear HR Manager,
 
-Please find attached the daily time report for ${userName} dated ${date}.
+Please find below the daily time report for ${userName} dated ${date}.
 
 Summary:
 - Total Tasks: ${stats.totalProjects}
@@ -247,7 +56,7 @@ This report was generated automatically by the Sense Time Tracker system.
     `
 
     // Prepare recipients
-    const recipients = ["hr@senseprojects.in","imran@senseprojects.in"]
+    const recipients = ['bhavishya.sense@gmail.com']
     if (additionalEmail && additionalEmail.trim()) {
       recipients.push(additionalEmail.trim())
     }
@@ -608,15 +417,14 @@ This report was generated automatically by the Sense Time Tracker system.
         </body>
         </html>
       `,
-      attachments: [attachment],
     }
 
     await transporter.sendMail(mailOptions)
 
     // Prepare success message based on recipients
-    let successMessage = "PDF report generated and sent successfully to HR manager"
+    let successMessage = "Daily report sent successfully to HR manager"
     if (additionalEmail && additionalEmail.trim()) {
-      successMessage = `PDF report generated and sent successfully to HR manager and ${additionalEmail.trim()}`
+      successMessage = `Daily report sent successfully to HR manager and ${additionalEmail.trim()}`
     }
 
     return NextResponse.json({
@@ -624,7 +432,7 @@ This report was generated automatically by the Sense Time Tracker system.
       message: successMessage,
     })
   } catch (error) {
-    console.error("Error generating/sending report:", error)
-    return NextResponse.json({ error: "Failed to generate and send report: " + error.message }, { status: 500 })
+    console.error("Error sending report:", error)
+    return NextResponse.json({ error: "Failed to send report: " + error.message }, { status: 500 })
   }
 }

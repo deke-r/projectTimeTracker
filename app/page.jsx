@@ -142,7 +142,7 @@ export default function ProjectTimeTracker() {
     if (!watchedValues.userName.trim()) {
       toast({
         title: "Missing Information",
-        description: "Please enter your name before generating the report",
+        description: "Please enter your name before sending the report",
         variant: "destructive",
       })
       return
@@ -151,7 +151,7 @@ export default function ProjectTimeTracker() {
     if (projects.length === 0) {
       toast({
         title: "No Projects",
-        description: "Please add at least one project before generating the report",
+        description: "Please add at least one project before sending the report",
         variant: "destructive",
       })
       return
@@ -161,8 +161,8 @@ export default function ProjectTimeTracker() {
 
     // Show loading toast
     const loadingToast = toast({
-      title: "Generating Report...",
-      description: "Please wait while we generate and send your PDF report",
+      title: "Sending Report...",
+      description: "Please wait while we send your daily report",
     })
 
     try {
@@ -195,8 +195,8 @@ export default function ProjectTimeTracker() {
         
         // Show different success messages based on whether email was provided
         const successMessage = watchedValues.userEmail.trim() 
-          ? `PDF report has been generated and sent to HR manager and your email (${watchedValues.userEmail}). You will receive a confirmation email shortly.`
-          : `PDF report has been generated and sent to HR manager. You will receive a confirmation email shortly.`
+          ? `Daily report has been sent to HR manager and your email (${watchedValues.userEmail}). You will receive a confirmation email shortly.`
+          : `Daily report has been sent to HR manager. You will receive a confirmation email shortly.`
         
         toast({
           title: "✅ Report Sent Successfully!",
@@ -210,14 +210,14 @@ export default function ProjectTimeTracker() {
         setValue("projectForm.endTime", "")
         setValue("projectForm.description", "")
       } else {
-        throw new Error(result.error || "Failed to generate report")
+        throw new Error(result.error || "Failed to send report")
       }
     } catch (error) {
       // Dismiss loading toast and show error
       loadingToast.dismiss()
       toast({
         title: "❌ Error",
-        description: error.message || "Failed to generate and send report",
+        description: error.message || "Failed to send report",
         variant: "destructive",
       })
     } finally {
@@ -402,9 +402,9 @@ export default function ProjectTimeTracker() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Generate Report
+                Send Report
               </CardTitle>
-              <CardDescription>Generate and automatically send your daily report to HR manager</CardDescription>
+              <CardDescription>Send your daily report to HR manager via email</CardDescription>
             </CardHeader>
             <CardContent>
               <Button
@@ -417,7 +417,7 @@ export default function ProjectTimeTracker() {
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                {isGenerating ? "Generating PDF..." : "Generate PDF Report"}
+                {isGenerating ? "Sending Report..." : "Send Daily Report"}
               </Button>
             </CardContent>
           </Card>
