@@ -39,13 +39,13 @@ export default function ProjectTimeTracker() {
   // Watch form values for real-time validation
   const watchedValues = watch()
 
-  // Generate time options from 9:30 AM to 6:30 PM
+  // Generate time options from 9:00 AM to 8:00 PM with 15-minute intervals
   const generateTimeOptions = () => {
     const times = []
-    for (let hour = 9; hour <= 18; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        if (hour === 9 && minute < 30) continue
-        if (hour === 18 && minute > 30) continue
+    for (let hour = 9; hour <= 20; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        // Skip times after 8:00 PM (20:00)
+        if (hour === 20 && minute > 0) continue
 
         const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
         const displayTime = new Date(`2000-01-01T${timeString}`).toLocaleTimeString("en-US", {
@@ -301,7 +301,7 @@ export default function ProjectTimeTracker() {
           <CardHeader>
             <CardTitle>Add Projects</CardTitle>
             <CardDescription>
-              Office hours: 9:30 AM - 6:30 PM • Date: {formatDate(watchedValues.selectedDate)}
+              Office hours: 9:00 AM - 8:00 PM • Date: {formatDate(watchedValues.selectedDate)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
